@@ -33,7 +33,7 @@ class WorkerProcess extends Process {
         yield $server->start();
         $this->server = $server;
         \Amp\onReadable($this->ipcSock, function($watcherId) {
-            \Amp\cancel($watcherId);
+            Loop::cancel($watcherId);
             yield from $this->stop();
         });
     }

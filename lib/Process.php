@@ -89,10 +89,10 @@ abstract class Process {
 
         $loop = Loop::get()->getHandle();
         if (is_resource($loop) && get_resource_type($loop) == "uv_loop") {
-            \Amp\unreference(\Amp\onSignal(\UV::SIGINT, $onSignal));
-            \Amp\unreference(\Amp\onSignal(\UV::SIGTERM, $onSignal));
+            Loop::unreference(Loop::onSignal(\UV::SIGINT, $onSignal));
+            Loop::unreference(Loop::onSignal(\UV::SIGTERM, $onSignal));
         } elseif (extension_loaded("pcntl")) {
-            \Amp\unreference(\Amp\repeat(1000, "pcntl_signal_dispatch"));
+            Loop::unreference(Loop::repeat(1000, "pcntl_signal_dispatch"));
             pcntl_signal(\SIGINT, $onSignal);
             pcntl_signal(\SIGTERM, $onSignal);
         }
@@ -121,7 +121,7 @@ abstract class Process {
             $this->exitCode = 1;
             $msg = "{$err["message"]} in {$err["file"]} on line {$err["line"]}";
             // FIXME: Fatal error: Uncaught LogicException: Cannot run() recursively; event reactor already active
-            \Amp\run(function() use ($msg) {
+            \Amp\execute(function() use ($msg) {
                 $this->logger->critical($msg);
                 yield from $this->stop();
             });

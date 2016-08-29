@@ -3,6 +3,7 @@
 namespace Aerys;
 
 use Amp\{ Coroutine, Deferred, Internal\Producer, Observable, Postponed, Success };
+use Interop\Async\Loop;
 
 class BodyParser implements Observable {
     use Producer {
@@ -52,11 +53,9 @@ class BodyParser implements Observable {
             $this->boundary = $m[2];
         }
 
-        \Amp\defer(function() {
+        Loop::defer(function() {
             if ($this->parsing === true) {
-                $awaitable = new Coroutine($this->initIncremental());
-            } else {
-                $awaitable = null;
+                \Amp\rethrow(new Coroutine($this->initIncremental()));
             }
             $this->body->when(function ($e, $data) {
                 $this->req = null;
@@ -80,7 +79,6 @@ class BodyParser implements Observable {
                     $this->resolve($result);
                 }
             });
-            return $awaitable;
         });
     }
 
